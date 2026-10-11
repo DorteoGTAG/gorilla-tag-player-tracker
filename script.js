@@ -30,17 +30,16 @@ const playerDatabase = {
     }
 };
 
-// Store recent searches in local storage
 const STORAGE_KEY = 'gtTrackerRecent';
 
-// Initialize recent searches on page load
 window.addEventListener('DOMContentLoaded', () => {
     loadRecentSearches();
+    lockInterface();
 });
 
 function trackPlayer() {
-    const playerInput = document.getElementById('playerInput');
-    const playerId = playerInput.value.trim().toUpperCase();
+    const input = document.getElementById('playerInput');
+    const playerId = input.value.trim().toUpperCase();
 
     if (!playerId) {
         showError('Please enter a player ID');
@@ -48,18 +47,17 @@ function trackPlayer() {
     }
 
     const resultPanel = document.getElementById('resultPanel');
-    resultPanel.innerHTML = '<div class="loading">Searching</div>';
+    resultPanel.innerHTML = '<div class="loading">Searching...</div>';
 
-    // Simulate network delay
     setTimeout(() => {
         if (playerDatabase[playerId]) {
             displayPlayerResult(playerDatabase[playerId], playerId);
             addToRecentSearches(playerId);
-            playerInput.value = '';
+            input.value = '';
         } else {
             showError(`Player ID "${playerId}" not found. Try: P12345, P67890, P11111, or P99999`);
         }
-    }, 600);
+    }, 400);
 }
 
 function displayPlayerResult(player, playerId) {
@@ -108,76 +106,29 @@ function handleKeyPress(event) {
 
 function minimizePanel() {
     const panel = document.querySelector('.tracker-panel');
-    panel.style.animation = 'slideOut 0.3s ease-out forwards';
-    
-    const style = document.createElement('style');
-    style.textContent = `
-        @keyframes slideOut {
-            to {
-                opacity: 0;
-                transform: translateX(100px);
-            }
-        }
-    `;
-    document.head.appendChild(style);
-    
-    setTimeout(() => {
-        panel.style.display = 'none';
-        showMinimizeButton();
-    }, 300);
-}
-
-function showMinimizeButton() {
-    let miniBtn = document.getElementById('miniBtn');
-    if (!miniBtn) {
-        miniBtn = document.createElement('button');
-        miniBtn.id = 'miniBtn';
-        miniBtn.textContent = '🐵';
-        miniBtn.style.cssText = `
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #1e90ff 0%, #0066cc 100%);
-            border: 2px solid #1e90ff;
-            color: white;
-            font-size: 24px;
-            cursor: pointer;
-            box-shadow: 0 0 20px rgba(30, 144, 255, 0.4);
-            z-index: 9998;
-            transition: all 0.2s;
-        `;
-        miniBtn.onclick = restorePanel;
-        document.body.appendChild(miniBtn);
-    }
-    miniBtn.style.display = 'block';
-}
-
-function restorePanel() {
-    const panel = document.querySelector('.tracker-panel');
-    panel.style.display = 'block';
-    panel.style.animation = 'slideIn 0.3s ease-out';
-    
     const miniBtn = document.getElementById('miniBtn');
-    if (miniBtn) {
-        miniBtn.style.display = 'none';
+
+    if (!miniBtn) {
+        const button = document.createElement('button');
+        button.id = 'miniBtn';
+        button.textContent = '🐵';
+        button.onclick = () => {
+            panel.style.display = 'block';
+            button.style.display = 'none';
+        };
+        document.body.appendChild(button);
     }
+
+    const button = document.getElementById('miniBtn');
+    panel.style.display = 'none';
+    button.style.display = 'block';
 }
 
 function addToRecentSearches(playerId) {
     let recent = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
-    
-    // Remove if already exists
     recent = recent.filter(id => id !== playerId);
-    
-    // Add to beginning
     recent.unshift(playerId);
-    
-    // Keep only last 5
     recent = recent.slice(0, 5);
-    
     localStorage.setItem(STORAGE_KEY, JSON.stringify(recent));
     loadRecentSearches();
 }
@@ -185,16 +136,14 @@ function addToRecentSearches(playerId) {
 function loadRecentSearches() {
     const recent = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
     const recentList = document.getElementById('recentList');
-    
-    if (recent.length === 0) {
+
+    if (!recent.length) {
         recentList.innerHTML = '<p class="empty">No recent searches</p>';
         return;
     }
-    
+
     recentList.innerHTML = recent.map(id => `
-        <div class="recent-item" onclick="quickTrack('${id}')">
-            ${id}
-        </div>
+        <div class="recent-item" onclick="quickTrack('${id}')">${id}</div>
     `).join('');
 }
 
@@ -203,10 +152,20 @@ function quickTrack(playerId) {
     trackPlayer();
 }
 
-// Restore panel on page load
-window.addEventListener('load', () => {
+function lockInterface() {
     const panel = document.querySelector('.tracker-panel');
-    if (panel.style.display === 'none') {
-        restorePanel();
-    }
-});
+    const container = document.querySelector('.overlay-container');
+
+    panel.setAttribute('draggable', 'false');
+    container.setAttribute('draggable', 'false');
+
+    panel.addEventListener('dragstart', (e) => e.preventDefault());
+    container.addEventListener('dragstart', (e) => e.preventDefault());
+
+    document.addEventListener('dragstart', (e) => e.preventDefault());
+    document.addEventListener('mousedown', (e) => {
+        if (e.target.closest('button, input, .recent-item')) return;
+        // Keep UI fixed in place; do nothing.
+    });
+}
+

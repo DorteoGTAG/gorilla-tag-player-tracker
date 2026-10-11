@@ -11,18 +11,19 @@
         <div class="tracker-panel">
             <div class="header">
                 <h1>🐵 GT Player Tracker</h1>
-                <button class="close-btn" onclick="minimizePanel()">
+                <button class="close-btn" onclick="minimizePanel()" aria-label="Minimize">
                     <span>−</span>
                 </button>
             </div>
 
             <div class="search-section">
-                <input 
-                    type="text" 
-                    id="playerInput" 
-                    class="player-input" 
+                <input
+                    type="text"
+                    id="playerInput"
+                    class="player-input"
                     placeholder="Enter Player ID..."
                     onkeypress="handleKeyPress(event)"
+                    autocomplete="off"
                 >
                 <button class="search-btn" onclick="trackPlayer()">Track</button>
             </div>
