@@ -1,5 +1,8 @@
 # 🐵 Gorilla Tag Player Tracker
 
+🚨PLEASE ONLY CLICK THE HTML FILE TO OPEN
+🚨
+
 A browser-based overlay application for tracking Gorilla Tag players. Simply enter a player ID and instantly see what code they're in!
 
 ## Features
@@ -32,14 +35,7 @@ A browser-based overlay application for tracking Gorilla Tag players. Simply ent
 3. Click "Track" or press Enter
 4. View the player's current code and location instantly
 
-## Test Player IDs
 
-Try these sample IDs to test the tracker:
-
-- **P12345** - ShadowGorilla (Online)
-- **P67890** - NeonMonkey (Online)
-- **P11111** - PixelApe (Offline)
-- **P99999** - VortexGamer (Online)
 
 ## File Structure
 
