@@ -1,48 +1,73 @@
-// Mock database of player IDs and their codes/rooms
 const playerDatabase = {
     'P12345': {
         playerName: 'ShadowGorilla',
         currentCode: 'GTAG-2K9X',
         status: 'online',
         lastSeen: 'Now',
-        room: 'Forest Arena'
+        room: 'Forest Arena',
+        username: 'shadowgorilla'
     },
     'P67890': {
         playerName: 'NeonMonkey',
         currentCode: 'GTAG-5F3L',
         status: 'online',
         lastSeen: 'Now',
-        room: 'City Rooftop'
+        room: 'City Rooftop',
+        username: 'neonmonkey'
     },
     'P11111': {
         playerName: 'PixelApe',
         currentCode: 'GTAG-8M2Q',
         status: 'offline',
         lastSeen: '5 minutes ago',
-        room: 'Last seen: Temple Ruins'
+        room: 'Last seen: Temple Ruins',
+        username: 'pixelape'
     },
     'P99999': {
         playerName: 'VortexGamer',
         currentCode: 'GTAG-4J7W',
         status: 'online',
         lastSeen: 'Now',
-        room: 'Mountain Peak'
+        room: 'Mountain Peak',
+        username: 'vortexgamer'
     }
 };
 
-const STORAGE_KEY = 'gtTrackerRecent';
+const ID_STORAGE_KEY = 'gtTrackerRecentIds';
+const USERNAME_STORAGE_KEY = 'gtTrackerRecentUsernames';
 
 window.addEventListener('DOMContentLoaded', () => {
     loadRecentSearches();
-    lockInterface();
+    initModeSwitching();
 });
+
+function initModeSwitching() {
+    const buttons = document.querySelectorAll('.mode-btn');
+    buttons.forEach((button) => {
+        button.addEventListener('click', () => {
+            const mode = button.dataset.mode;
+            buttons.forEach(btn => btn.classList.toggle('active', btn === button));
+
+            const idPanel = document.getElementById('idPanel');
+            const usernamePanel = document.getElementById('usernamePanel');
+
+            if (mode === 'id') {
+                idPanel.classList.remove('hidden');
+                usernamePanel.classList.add('hidden');
+            } else {
+                usernamePanel.classList.remove('hidden');
+                idPanel.classList.add('hidden');
+            }
+        });
+    });
+}
 
 function trackPlayer() {
     const input = document.getElementById('playerInput');
     const playerId = input.value.trim().toUpperCase();
 
     if (!playerId) {
-        showError('Please enter a player ID');
+        showError('Please enter a player ID', 'resultPanel');
         return;
     }
 
@@ -50,18 +75,53 @@ function trackPlayer() {
     resultPanel.innerHTML = '<div class="loading">Searching...</div>';
 
     setTimeout(() => {
-        if (playerDatabase[playerId]) {
-            displayPlayerResult(playerDatabase[playerId], playerId);
-            addToRecentSearches(playerId);
+        const data = playerDatabase[playerId];
+
+        if (data) {
+            displayPlayerResult(data, playerId, 'resultPanel');
+            addToRecentSearches(playerId, ID_STORAGE_KEY, 'recentList');
             input.value = '';
         } else {
-            showError(`Player ID "${playerId}" not found. Try: P12345, P67890, P11111, or P99999`);
+            showError(`Player ID "${playerId}" not found. Try: P12345, P67890, P11111, or P99999`, 'resultPanel');
         }
-    }, 400);
+    }, 450);
 }
 
-function displayPlayerResult(player, playerId) {
-    const resultPanel = document.getElementById('resultPanel');
+function trackUsername() {
+    const input = document.getElementById('usernameInput');
+    const username = input.value.trim().toLowerCase();
+
+    if (!username) {
+        showError('Please enter a username', 'usernameResultPanel');
+        return;
+    }
+
+    const resultPanel = document.getElementById('usernameResultPanel');
+    resultPanel.innerHTML = '<div class="loading">Searching...</div>';
+
+    setTimeout(() => {
+        let matched = null;
+        let matchedId = null;
+
+        Object.entries(playerDatabase).forEach(([id, data]) => {
+            if (data.username === username) {
+                matched = data;
+                matchedId = id;
+            }
+        });
+
+        if (matched && matchedId) {
+            displayPlayerResult(matched, matchedId, 'usernameResultPanel');
+            addToRecentSearches(username, USERNAME_STORAGE_KEY, 'usernameRecentList');
+            input.value = '';
+        } else {
+            showError(`Username "${username}" not found. Try: shadowgorilla, neonmonkey, pixelape, or vortexgamer`, 'usernameResultPanel');
+        }
+    }, 450);
+}
+
+function displayPlayerResult(player, playerId, panelId) {
+    const resultPanel = document.getElementById(panelId);
     const statusClass = player.status === 'online' ? 'online' : 'offline';
     const statusIndicator = `<span class="status-indicator ${statusClass}"></span>`;
 
@@ -93,19 +153,21 @@ function displayPlayerResult(player, playerId) {
     `;
 }
 
-function showError(message) {
-    const resultPanel = document.getElementById('resultPanel');
+function showError(message, panelId) {
+    const resultPanel = document.getElementById(panelId);
     resultPanel.innerHTML = `<div class="error">${message}</div>`;
 }
 
 function handleKeyPress(event) {
-    if (event.key === 'Enter') {
-        trackPlayer();
-    }
+    if (event.key === 'Enter') trackPlayer();
+}
+
+function handleUsernameKeyPress(event) {
+    if (event.key === 'Enter') trackUsername();
 }
 
 function minimizePanel() {
-    const panel = document.querySelector('.tracker-panel');
+    const panel = document.querySelector('.tracker-panel:not(.hidden)');
     const miniBtn = document.getElementById('miniBtn');
 
     if (!miniBtn) {
@@ -124,48 +186,40 @@ function minimizePanel() {
     button.style.display = 'block';
 }
 
-function addToRecentSearches(playerId) {
-    let recent = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
-    recent = recent.filter(id => id !== playerId);
-    recent.unshift(playerId);
+function addToRecentSearches(value, storageKey, listId) {
+    let recent = JSON.parse(localStorage.getItem(storageKey)) || [];
+    recent = recent.filter(item => item !== value);
+    recent.unshift(value);
     recent = recent.slice(0, 5);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(recent));
-    loadRecentSearches();
+    localStorage.setItem(storageKey, JSON.stringify(recent));
+    renderRecentSearches(storageKey, listId);
 }
 
-function loadRecentSearches() {
-    const recent = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
-    const recentList = document.getElementById('recentList');
+function renderRecentSearches(storageKey, listId) {
+    const recent = JSON.parse(localStorage.getItem(storageKey)) || [];
+    const list = document.getElementById(listId);
 
     if (!recent.length) {
-        recentList.innerHTML = '<p class="empty">No recent searches</p>';
+        list.innerHTML = '<p class="empty">No recent searches</p>';
         return;
     }
 
-    recentList.innerHTML = recent.map(id => `
-        <div class="recent-item" onclick="quickTrack('${id}')">${id}</div>
+    list.innerHTML = recent.map(value => `
+        <div class="recent-item" onclick="quickTrack('${value}', '${storageKey}', '${listId}')">${value}</div>
     `).join('');
 }
 
-function quickTrack(playerId) {
-    document.getElementById('playerInput').value = playerId;
-    trackPlayer();
+function loadRecentSearches() {
+    renderRecentSearches(ID_STORAGE_KEY, 'recentList');
+    renderRecentSearches(USERNAME_STORAGE_KEY, 'usernameRecentList');
 }
 
-function lockInterface() {
-    const panel = document.querySelector('.tracker-panel');
-    const container = document.querySelector('.overlay-container');
-
-    panel.setAttribute('draggable', 'false');
-    container.setAttribute('draggable', 'false');
-
-    panel.addEventListener('dragstart', (e) => e.preventDefault());
-    container.addEventListener('dragstart', (e) => e.preventDefault());
-
-    document.addEventListener('dragstart', (e) => e.preventDefault());
-    document.addEventListener('mousedown', (e) => {
-        if (e.target.closest('button, input, .recent-item')) return;
-        // Keep UI fixed in place; do nothing.
-    });
+function quickTrack(value, storageKey, listId) {
+    if (storageKey === ID_STORAGE_KEY) {
+        document.getElementById('playerInput').value = value;
+        trackPlayer();
+    } else {
+        document.getElementById('usernameInput').value = value;
+        trackUsername();
+    }
 }
-
