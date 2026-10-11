@@ -1,7 +1,7 @@
 # 🐵 Gorilla Tag Player Tracker
+🚨WE ARE NOT LIABLE IF YOU GET BANNED🚨
+🚨PLEASE ONLY CLICK THE HTML FILE TO OPEN🚨
 
-🚨PLEASE ONLY CLICK THE HTML FILE TO OPEN
-🚨
 
 A browser-based overlay application for tracking Gorilla Tag players. Simply enter a player ID and instantly see what code they're in!
 
