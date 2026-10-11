@@ -1,19 +1,22 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Gorilla Tag Player Tracker</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-    <div class="overlay-container">
-        <div class="tracker-panel">
+    <div class="app-shell">
+        <div class="mode-selector">
+            <button class="mode-btn active" data-mode="id">Player ID</button>
+            <button class="mode-btn" data-mode="username">Username</button>
+        </div>
+
+        <div class="tracker-panel" id="idPanel">
             <div class="header">
                 <h1>🐵 GT Player Tracker</h1>
-                <button class="close-btn" onclick="minimizePanel()" aria-label="Minimize">
-                    <span>−</span>
-                </button>
+                <button class="close-btn" onclick="minimizePanel()" aria-label="Minimize">−</button>
             </div>
 
             <div class="search-section">
@@ -24,21 +27,45 @@
                     placeholder="Enter Player ID..."
                     onkeypress="handleKeyPress(event)"
                     autocomplete="off"
-                >
+                />
                 <button class="search-btn" onclick="trackPlayer()">Track</button>
             </div>
 
             <div class="result-panel" id="resultPanel">
-                <div class="placeholder">
-                    <p>Enter a player ID to track</p>
-                </div>
+                <div class="placeholder"><p>Enter a player ID to track</p></div>
             </div>
 
             <div class="recent-section">
                 <h3>Recent Searches</h3>
-                <div class="recent-list" id="recentList">
-                    <p class="empty">No recent searches</p>
-                </div>
+                <div class="recent-list" id="recentList"></div>
+            </div>
+        </div>
+
+        <div class="tracker-panel hidden" id="usernamePanel">
+            <div class="header">
+                <h1>🐵 GT Player Tracker</h1>
+                <button class="close-btn" onclick="minimizePanel()" aria-label="Minimize">−</button>
+            </div>
+
+            <div class="search-section">
+                <input
+                    type="text"
+                    id="usernameInput"
+                    class="player-input"
+                    placeholder="Enter Username..."
+                    onkeypress="handleUsernameKeyPress(event)"
+                    autocomplete="off"
+                />
+                <button class="search-btn" onclick="trackUsername()">Track</button>
+            </div>
+
+            <div class="result-panel" id="usernameResultPanel">
+                <div class="placeholder"><p>Enter a username to track</p></div>
+            </div>
+
+            <div class="recent-section">
+                <h3>Recent Usernames</h3>
+                <div class="recent-list" id="usernameRecentList"></div>
             </div>
         </div>
     </div>
